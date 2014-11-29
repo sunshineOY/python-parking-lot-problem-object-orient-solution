@@ -5,6 +5,8 @@ This project is the object-orient solution of the parking lot problem
 
 The grammer version is 2.7
 
+execute Main.py to simulate the parking action
+
 The description of the problem is as follows:
 
 1. There is a roboticized parking lot that has no human managers
