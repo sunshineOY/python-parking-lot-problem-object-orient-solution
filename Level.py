@@ -8,15 +8,20 @@ class Level:
     '''
     The class is the levels of the parking lot
     '''
+    __levelId = 0
     __spaces = []
-    __spaceCount = len(__spaces)
+    __spaceCount = 0
 
-    def __init__(self, spacesOfEachLevel):
+    def __init__(self, spacesOfEachLevel, levelId):
         '''
         Constructor
         '''
+        self.__levelId = levelId
         self.__spaces = spacesOfEachLevel
         self.__spaceCount = len(spacesOfEachLevel)
+
+    def getLevelId(self):
+        return self.__levelId
     
     def getSpaces(self):
         '''

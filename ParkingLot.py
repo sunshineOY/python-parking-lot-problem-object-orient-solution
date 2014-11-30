@@ -3,34 +3,74 @@ Created on 2014-11-29
 
 @author: ouyangsiqi
 '''
-from Constants import Constants
 from Space import Space
 from Level import Level
+from CardReader import CardReader
+from Card import Card
 class ParkingLot:
     class NoParkingSpaceError(Exception): pass
     '''
     The class is the whole parking lot
     '''
     __levels = []
+    __cardReader = None
     __levelCount = 0
     __totalSpaceCount = 0
     __totalEmptySpaceCount = 0
+    __spaceCountEachLevel = 0
 
     def __init__(self):
         '''
         Constructor
         '''
         self.__levelCount = int(raw_input("to define the parking lot's level count:"))
-        
+        cards = []
         for i in range(self.__levelCount):
-            spaceCount = int(raw_input("to define the space count in level " + str(i + 1) + " of the parking lot:"))
+            levelId = i + 1
+            self.__spaceCountEachLevel = int(raw_input("to define the space count in level " + str(levelId) + " of the parking lot:"))
             spacesOfEachLevel = []
-            for j in range(spaceCount):
-                spacesOfEachLevel.append(Space())
-            self.__levels.append(Level(spacesOfEachLevel))
-            self.__totalSpaceCount += spaceCount
+            for j in range(self.__spaceCountEachLevel):
+                spaceId = i * self.__spaceCountEachLevel + j + 1
+                spacesOfEachLevel.append(Space(spaceId))
+                cards.append(Card(spaceId, levelId, spaceId))
+            self.__levels.append(Level(spacesOfEachLevel, levelId))
+            self.__totalSpaceCount += self.__spaceCountEachLevel
 
-        self.__totalEmptySpaceCount = self.__totalSpaceCount;
+        self.__cardReader = CardReader(cards)
+
+    def showParkingStatus(self):
+        '''
+        The method to show the parking status of the parking lot
+        '''
+        for i in range(self.__levelCount):
+            print "parking status in level " + str(i + 1) + ":"
+            self.__levels[i].showLevelParkingStatus()
+            print ""
+
+    def parkTheCar(self):
+        '''
+        To park the car in the position as the card says
+        '''
+        card = self.__cardReader.pickCardForParking()
+        levelId = card.getLevelId()
+        spaceId = card.getSpaceId()
+        self.__levels[levelId - 1].getSpaces()[spaceId % self.__spaceCountEachLevel - 1].parkCar()
+        return card
+
+    def leaveTheCar(self, card):
+        '''
+        The car leaves off the space
+        '''
+        levelId = card.getLevelId()
+        spaceId = card.getSpaceId()
+        self.__levels[levelId - 1].getSpaces()[spaceId % self.__spaceCountEachLevel - 1].leaveCar()
+        self.__cardReader.returnTheCard(card)
+
+    def allowToPark(self):
+        '''
+        The method to check if the parking lot allow to park
+        '''
+        return self.__cardReader.getLeftCardCount() > 0
 
     def getLevelCount(self):
         '''
@@ -50,31 +90,14 @@ class ParkingLot:
         '''
         return self.__totalSpaceCount
 
-    def showParkingStatus(self):
-        for i in range(self.__levelCount):
-            print "parking status in level " + str(i + 1) + ":"
-            self.__levels[i].showLevelParkingStatus()
-            print ""
+    def getTotalEmptySpaceCount(self):
+        '''
+        The method to get the total empty spaces count
+        '''
+        return self.__cardReader.getLeftCardCount()
 
-    def parkTheCar(self):
+    def getCardReader(self):
         '''
-        To park the car in the random space of the random level
+        The method to get the card reader
         '''
-        hasSpace = False;
-        for i in range(self.__levelCount):
-            for j in range(self.__levels[i].getSpaceCount()):
-                if not self.__levels[i].getSpaces()[j].checkIfCarParked():
-                    self.__levels[i].getSpaces()[j].parkCar()
-                    self.__totalEmptySpaceCount -= 1
-                    hasSpace = True;
-                    return {Constants.levelNumberKey: i + 1, Constants.spaceNumberKey: j + 1}
-                else:
-                    continue
-        if not hasSpace:
-            raise self.NoParkingSpaceError, "no empty parking spaces"
-
-    def allowToPark(self):
-        '''
-        The method to check if the parking lot allow to park
-        '''
-        return self.__totalEmptySpaceCount > 0
+        return self.__cardReader
